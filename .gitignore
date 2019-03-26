@@ -1,52 +1,73 @@
-# Prerequisites
-*.d
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+//global variables delaration;
+#define M 3 //no of resources
+#define N 5 //no of processes
+ int i = 0;
+ 
+ pthread_mutex_t mutex; 
+ int init[M];
+ int avail [M];
+ int allocmatrix [N][M]; 
+ int MaxMatrix [N][M];
+ int NeedMatrix [N][M];
 
-# Linker output
-*.ilk
-*.map
-*.exp
+	void *procs(void* procsID)
+	{     
+	            int pID = *(int*)procsID;
+                    int c=0;
+        	    while(c<3)
+            		{
+                        	//generate random requests
+                        	sleep(1);
+                        	int request[M];
+				pthread_mutex_lock(&mutex);
 
-# Precompiled Headers
-*.gch
-*.pch
+                        	//NeedMatrix vector ko initialize karna
+                        	for(i = 0; i < M; i++)
+                        		{
+                        	            if(NeedMatrix[pID][i] != 0)
+                                    		{
+                                    		 request[i] = rand() % NeedMatrix[pID][i];
+                                    	        }
+                                    	  else
+                                                {
+                                                request[i] = 0;
+                                                }
+                      		       }
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
+                        printReqOrRelVector(request);
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+                        getRes(pID,request);
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+  			pthread_mutex_unlock(&mutex);
+           
+//random release vector gernerate karne ke liye            
+			sleep(1);
+			int releaseVector[M];
+			pthread_mutex_lock(&mutex);
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+//release vector ko initialize karna
+			for(i = 0; i < M; i++)
+			{
+				if(allocmatrix[pID][i] != 0)
+           				 {
+           			             releaseVector[i] = rand() % allocmatrix[pID][i];
+           				 }
+           		      else
+           				 {
+            			             releaseVector[i] = 0;
+            				 }
+			}
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+
+				
+       	                        printReqOrRelVector(releaseVector);
+				relRes(pID,releaseVector);
+				pthread_mutex_unlock(&mutex);
+
+				c++;
+            	   }
+}
