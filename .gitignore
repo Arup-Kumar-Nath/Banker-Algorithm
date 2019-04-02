@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-//global variables delaration;
+//global variables delaration
 #define M 3 //no of resources
 #define N 5 //no of processes
  int i = 0;
@@ -70,4 +70,46 @@
 
 				c++;
             	   }
+}
+
+int getRes(int pID,int request[])
+{
+            if (casegreaterthanneed(pID,request) == -1)
+            {
+                        printf("Number of requested Resources is more than Needed.\n");
+                        return -1;
+            }
+            printf("Resources are being allocated...\n");
+
+            if(enoughtoalloccase(request) == -1)
+            {
+                        printf("Not enough Resources.\n");
+                        return -1;
+            }
+
+        
+            for (i = 0; i < M; ++i)
+            {
+                        NeedMatrix[pID][i] -= request[i];
+                        allocmatrix[pID][i] += request[i];
+                        avail[i] -= request[i];
+            }
+            printf("Checking is the state is safe...\n");
+
+           
+            if (safemodecase() == 0)
+            {
+                        printf("\nx========================x\n|Safe Mode. Resources Allocated|\nx=========================x\n");printf("\nAuthor:@Abhishek Sharma\n");
+                        
+ exit(1);
+                        return 0;
+            }
+            else
+            {           
+                        printf("\nx=====================x\n|State is not safe.          |\nx=====================x\n");
+		printf("\nAuthor:@Arup_K \n");
+                        exit(1);
+                   
+                        return -1;
+            }
 }
