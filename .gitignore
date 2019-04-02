@@ -44,12 +44,12 @@
 
   			pthread_mutex_unlock(&mutex);
            
-//random release vector gernerate karne ke liye            
+//random release vector gernerate          
 			sleep(1);
 			int releaseVector[M];
 			pthread_mutex_lock(&mutex);
 
-//release vector ko initialize karna
+//release vector initialize
 			for(i = 0; i < M; i++)
 			{
 				if(allocmatrix[pID][i] != 0)
