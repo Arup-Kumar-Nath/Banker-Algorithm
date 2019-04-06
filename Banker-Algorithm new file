@@ -1,0 +1,115 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+
+//global variables delaration;
+#define M 3 //no of resources
+#define N 5 //no of processoses
+ int i = 0;
+ int j = 0;
+ pthread_mutex_t mutex; 
+ int init[M];
+ int Available [M];
+ int AllocMatrix [N][M]; 
+ int MaxMatrix [N][M];
+ int NeedMatrix [N][M];
+
+	void *procs(void* procsID)
+	{     
+	            int pID = *(int*)procsID;
+                    int c=0;
+        	    while(c<3)
+            		{
+                        	//generate random requests
+                        	sleep(1);
+                        	int request[M];
+				pthread_mutex_lock(&mutex);
+
+                        	//To initialize NeedMatrix vector 
+                        	for(i = 0; i < M; i++)
+                        		{
+                        	            if(NeedMatrix[pID][i] != 0)
+                                    		{
+                                    		 request[i] = rand() % NeedMatrix[pID][i];
+                                    	        }
+                                    	  else
+                                                {
+                                                request[i] = 0;
+                                                }
+                      		       }
+
+                        printReqOrRelVector(request);
+
+                        getRes(pID,request);
+
+  			pthread_mutex_unlock(&mutex);
+           
+//random release vector gernerate            
+			sleep(1);
+			int releaseVector[M];
+			pthread_mutex_lock(&mutex);
+
+//To initialize release vector 
+			for(i = 0; i < M; i++)
+			{
+				if(AllocMatrix[pID][i] != 0)
+           				 {
+           			             releaseVector[i] = rand() % AllocMatrix[pID][i];
+           				 }
+           		      else
+           				 {
+            			             releaseVector[i] = 0;
+            				 }
+			}
+
+
+				
+       	                        printReqOrRelVector(releaseVector);
+				relRes(pID,releaseVector);
+				pthread_mutex_unlock(&mutex);
+
+				c++;
+            	   }
+}
+
+int getRes(int pID,int request[])
+{
+            if (casegreaterthanneed(pID,request) == -1)
+            {
+                        printf("Number of requested Resources is more than Needed.\n");
+                        return -1;
+            }
+            printf("Resources are being allocated......\n");
+
+            if(enoughtoalloccase(request) == -1)
+            {
+                        printf("Not enough Resources available.\n");
+                        return -1;
+            }
+
+        
+            for (i = 0; i < M; ++i)
+            {
+                        NeedMatrix[pID][i] -= request[i];
+                        AllocMatrix[pID][i] += request[i];
+                        Available[i] -= request[i];
+            }
+            printf("Checking is the state is safe....\n");
+
+           
+            if (safemodecase() == 0)
+            {
+                        printf("\nx========================x\n|Safe Mode. Resources Allocated|\nx=========================x\n");
+						printf("\nAuthor:@AK_Nath\n");
+                        
+ exit(1);
+                        return 0;
+            }
+            else
+            {           
+                        printf("\nx=====================x\n|State is not safe.          |\nx=====================x\n");
+                        exit(1);
+                   
+                        return -1;
+            }
+}
