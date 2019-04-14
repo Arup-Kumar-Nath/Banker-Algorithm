@@ -60,34 +60,29 @@
            				 {
             			             releaseVector[i] = 0;
             				 }
-			}
-
-
-				
+			}		
        	                        printReqOrRelVector(releaseVector);
-				relRes(pID,releaseVector);
+				relResource(pID,releaseVector);
 				pthread_mutex_unlock(&mutex);
-
 				c++;
             	   }
 }
 
 int getRes(int pID,int request[])
 {
-            if (casegreaterthanneed(pID,request) == -1)
+            if (CaseGreaterThanNeed(pID,request) == -1)
             {
                         printf("Number of requested Resources is more than Needed.\n");
                         return -1;
             }
             printf("Resources are being allocated......\n");
 
-            if(enoughtoalloccase(request) == -1)
+            if(EnoughToAllocate(request) == -1)
             {
                         printf("Not enough Resources available.\n");
                         return -1;
             }
-
-        
+	    
             for (i = 0; i < M; ++i)
             {
                         NeedMatrix[pID][i] -= request[i];
@@ -95,21 +90,238 @@ int getRes(int pID,int request[])
                         Available[i] -= request[i];
             }
             printf("Checking is the state is safe....\n");
-
-           
-            if (safemodecase() == 0)
+            if (SafeMode() == 0)
             {
                         printf("\nx========================x\n|Safe Mode. Resources Allocated|\nx=========================x\n");
-						printf("\nAuthor:@AK_Nath\n");
-                        
- exit(1);
+						printf("\nAuthor:@AK_Nath\n");    
+			 exit(1);
                         return 0;
             }
             else
             {           
-                        printf("\nx=====================x\n|State is not safe.          |\nx=====================x\n");
+                        printf("\nx=====================x\n|       State is not safe.        |\nx=====================x\n");
                         exit(1);
-                   
                         return -1;
             }
+}
+
+int relResource(int pID,int releaseVector[])
+{          
+
+            if(toRel(pID,releaseVector) == -1)
+            {
+                        printf("Not enought Resources.\n");
+                        return -1;
+            }
+            for(i = 0; i < M; i++)
+            {
+                        AllocMatrix[pID][i] -= releaseVector[i];
+                        NeedMatrix[pID][i] += releaseVector[i];
+                        Available[i] += releaseVector[i];
+            }
+            printf("Released.\nMetrix Available:\n");
+            ShowAvailable();
+            printf("Metrix Allocated:\n");
+            ShowAllocated();
+            printf("Metrix Need:\n");
+            ShowNeed();
+            return 0;
+}
+
+
+int toRel(int pID,int releaseVector[])
+{          
+            for (i = 0; i < M; ++i)
+            {
+                        if (releaseVector[i] <= AllocMatrix[pID][i])
+                                    { continue; }
+                        else
+                                    { return -1;}
+            }
+            return 0;
+}
+
+int CaseGreaterThanNeed(int pID,int request[])
+{
+            for (i = 0; i < M; ++i)
+            {
+                        if (request[i] <= NeedMatrix[pID][i])
+                                    {  continue; }
+                        else
+                        { return -1; }
+            }
+            return 0;
+}
+
+int EnoughToAllocate(int request[])
+{
+            for (i = 0; i < M; ++i)
+            {
+                        if (request[i] <= Available[i])
+                                    { continue; }
+                        else
+                        { return -1; }
+            }
+            return 0;
+}
+
+int SafeMode()
+{
+            int finish[N] = {0};
+            int work[M];
+            for(i = 0; i < M; i++)
+            {
+                       work[i] = Available[i];
+            }
+            int k;
+            for(i = 0; i < N; i++)
+            {
+                        if (finish[i] == 0)
+                        {
+                           for(j = 0; j < M; j++)
+                              {
+                                if(NeedMatrix[i][j] <= work[j])
+                                    {
+					if(j==M-1) {
+                                         finish[i] = 1;
+                                          for (k = 0; k < M; ++k)
+                                          {
+                                             	work[k] += AllocMatrix[i][k];                     
+                                            }                 
+						i = -1;
+						break;
+            				}
+					else
+                       			{ continue; }
+					}
+					else
+                        			{ break; }
+					}
+					}
+				else
+				{  continue; }
+			}
+           
+            for(i = 0; i < N; i++)
+            {
+                if (finish[i] == 0)
+                {
+                  return -1;
+                }
+                else
+                 { continue; }
+            }
+            return 0;
+}
+
+void ShowNeed()
+{
+    for (i = 0; i < N; ++i)
+    {
+        printf("{ ");
+        for (j = 0; j < M; ++j)
+          {
+            printf("%d, ", NeedMatrix[i][j]);
+          }
+       printf("}\n");
+    }
+}
+
+void ShowAllocated()
+{
+    for (i = 0; i < N; ++i)
+    {
+       printf("{ ");
+       for (j = 0; j < M; ++j)
+       {
+          printf("%d, ", AllocMatrix[i][j]);
+       }
+        printf("}\n");
+    }
+}
+
+void ShowAvailable()
+{
+   for (i = 0; i < M; ++i)
+    {
+       printf("%d, ",Available[i]);
+    }
+     printf("\n");
+     //return;
+}
+
+
+void printReqOrRelVector(int vec[])
+{
+    for (i = 0; i < M; ++i)
+    {
+      printf("%d, ",vec[i]);
+    }
+	printf("\n");
+   //return;
+}
+
+
+int main()
+{           
+	printf("Enter available VECTOR : \n");
+        for(i = 0; i < M; i++)
+            {
+                scanf("%d",&init[i]);
+            	Available[i] = init[i];
+            }
+    printf("Enter Allocation Matrix : \n");
+        for(i = 0; i < N; i++)
+            {            
+            	for(j = 0; j< M; j++)
+            	{
+            		scanf("%d",&AllocMatrix [i][j]);     
+            	}
+            }
+	printf("Enter MAX Matrix");
+            for(i = 0; i < N; i++)
+            {          
+            	for(j = 0; j< M; j++)
+            	{
+                    scanf("%d",&MaxMatrix [i][j]);
+            	}
+            }
+            //To initialize NeedMatrix matrix 
+         	 for (i = 0; i < N; ++i)
+            {
+                for (j = 0; j < M; ++j)
+                {
+                   NeedMatrix[i][j] = MaxMatrix[i][j] - AllocMatrix[i][j];
+                }
+            }
+
+            printf("Available Vector is : \n");
+            ShowAvailable();
+
+            printf("Allocation Matrix is : \n");
+            ShowAllocated();
+
+            printf("Need Matrix is : \n");
+            ShowNeed();
+
+            pthread_mutex_init(&mutex,NULL);
+            pthread_attr_t attrDefault;
+            pthread_attr_init(&attrDefault);
+            pthread_t *tid = malloc(sizeof(pthread_t) * N);
+
+            int *pid = malloc(sizeof(int) * N); // process ID 
+
+            //initialize pid and create pthreads
+            for(i = 0; i < N; i++)
+            {
+                        *(pid + i) = i;
+                        pthread_create((tid+i), &attrDefault, procs, (pid+i));
+            }
+
+            //join threads
+            for(i = 0; i < N; i++)
+            {
+                        pthread_join(*(tid+i),NULL);
+            }
+            return 0;
 }
